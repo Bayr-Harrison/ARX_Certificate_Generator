@@ -4,19 +4,11 @@ import fitz  # PyMuPDF
 import io
 import zipfile
 from datetime import datetime
-from supabase import create_client
-import requests
-import os
+import httpx
 
-# Load secrets for Supabase
+# Supabase Configuration
 SUPABASE_URL = "https://yetmtzyyztirghaxnccp.supabase.co"
-SUPABASE_DB_NAME = st.secrets["SUPABASE_DB_NAME"]
-SUPABASE_USER = st.secrets["SUPABASE_USER"]
-SUPABASE_PASSWORD = st.secrets["SUPABASE_PASSWORD"]
-SUPABASE_HOST = st.secrets["SUPABASE_HOST"]
-SUPABASE_PORT = st.secrets["SUPABASE_PORT"]
-
-supabase = create_client(SUPABASE_URL, st.secrets["SUPABASE_PASSWORD"])
+SUPABASE_API_KEY = st.secrets["SUPABASE_PASSWORD"]
 
 # Certificate template mapping
 TEMPLATE_MAP = {
@@ -24,7 +16,36 @@ TEMPLATE_MAP = {
     "Student of the Month": "002.pdf"
 }
 
-# Streamlit UI
+def insert_certificate(iatc_id, name, issue_date, cert_type, cert_url):
+    headers = {
+        "apikey": SUPABASE_API_KEY,
+        "Authorization": f"Bearer {SUPABASE_API_KEY}",
+        "Content-Type": "application/json",
+    }
+    data = {
+        "iatc_id": iatc_id,
+        "name": name,
+        "issue_date": issue_date,
+        "cert_type": cert_type,
+        "cert_url": cert_url
+    }
+    response = httpx.post(f"{SUPABASE_URL}/rest/v1/certificates", json=data, headers=headers)
+    if response.status_code != 201:
+        st.error(f"Error inserting into database: {response.text}")
+
+def upload_certificate_to_supabase(pdf_bytes, file_name):
+    headers = {
+        "Authorization": f"Bearer {SUPABASE_API_KEY}",
+        "Content-Type": "application/pdf"
+    }
+    upload_url = f"{SUPABASE_URL}/storage/v1/object/public/certificates/issued_certificates/{file_name}"
+    response = httpx.put(upload_url, content=pdf_bytes, headers=headers)
+    if response.status_code == 200:
+        return upload_url
+    else:
+        st.error(f"Failed to upload {file_name}: {response.text}")
+        return None
+
 st.set_page_config(page_title="Certificate Generator", layout="wide")
 tabs = st.tabs(["Certificate Generator", "Certificate Log"])
 
@@ -49,7 +70,7 @@ with tabs[0]:  # Certificate Generator Page
             cert_url = f"{SUPABASE_URL}/storage/v1/object/public/certificates/issued_certificates/{file_name}"
             
             # Load template
-            response = requests.get(template_path)
+            response = httpx.get(template_path)
             doc = fitz.open(stream=response.content, filetype="pdf")
             page = doc[0]
             
@@ -66,18 +87,13 @@ with tabs[0]:  # Certificate Generator Page
             pdf_buffer.seek(0)
             
             # Upload certificate to Supabase
-            upload_url = f"{SUPABASE_URL}/storage/v1/object/public/certificates/issued_certificates/{file_name}"
-            headers = {"Authorization": f"Bearer {st.secrets['SUPABASE_PASSWORD']}", "Content-Type": "application/pdf"}
-            requests.put(upload_url, data=pdf_buffer.getvalue(), headers=headers)
+            uploaded_cert_url = upload_certificate_to_supabase(pdf_buffer.getvalue(), file_name)
+            if uploaded_cert_url:
+                insert_certificate(iatc_id, name, issue_date, cert_type, uploaded_cert_url)
             
             # Save to zip file
             zipf.writestr(file_name, pdf_buffer.getvalue())
-            
-            # Append to Supabase database
-            data = {"iatc_id": iatc_id, "name": name, "issue_date": issue_date, "cert_type": cert_type, "cert_url": cert_url}
-            supabase.table("certificates").insert(data).execute()
-            
-            cert_links.append(cert_url)
+            cert_links.append(uploaded_cert_url)
         
         zipf.close()
         zip_buffer.seek(0)
@@ -87,6 +103,13 @@ with tabs[0]:  # Certificate Generator Page
 
 with tabs[1]:  # Certificate Log Page
     st.title("Certificate Log")
-    query = supabase.table("certificates").select("*").execute()
-    df_log = pd.DataFrame(query.data)
-    st.dataframe(df_log)
+    headers = {
+        "apikey": SUPABASE_API_KEY,
+        "Authorization": f"Bearer {SUPABASE_API_KEY}"
+    }
+    response = httpx.get(f"{SUPABASE_URL}/rest/v1/certificates", headers=headers)
+    if response.status_code == 200:
+        df_log = pd.DataFrame(response.json())
+        st.dataframe(df_log)
+    else:
+        st.error(f"Failed to fetch certificate log: {response.text}")
