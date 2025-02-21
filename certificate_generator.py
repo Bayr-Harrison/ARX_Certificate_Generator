@@ -8,7 +8,7 @@ import httpx
 
 # Supabase Configuration
 SUPABASE_URL = "https://yetmtzyyztirghaxnccp.supabase.co"
-SUPABASE_API_KEY = st.secrets["SUPABASE_PASSWORD"]
+SUPABASE_SERVICE_ROLE_KEY = st.secrets["SUPABASE_SERVICE_ROLE_KEY"]
 
 # Certificate template mapping
 TEMPLATE_MAP = {
@@ -18,8 +18,8 @@ TEMPLATE_MAP = {
 
 def insert_certificate(iatc_id, name, issue_date, cert_type, cert_url):
     headers = {
-        "apikey": SUPABASE_API_KEY,
-        "Authorization": f"Bearer {SUPABASE_API_KEY}",
+        "apikey": SUPABASE_SERVICE_ROLE_KEY,
+        "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}",
         "Content-Type": "application/json",
     }
     data = {
@@ -35,7 +35,8 @@ def insert_certificate(iatc_id, name, issue_date, cert_type, cert_url):
 
 def upload_certificate_to_supabase(pdf_bytes, file_name):
     headers = {
-        "Authorization": f"Bearer {SUPABASE_API_KEY}",
+        "apikey": SUPABASE_SERVICE_ROLE_KEY,
+        "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}",
         "Content-Type": "application/pdf"
     }
     upload_url = f"{SUPABASE_URL}/storage/v1/object/public/certificates/issued_certificates/{file_name}"
@@ -104,8 +105,8 @@ with tabs[0]:  # Certificate Generator Page
 with tabs[1]:  # Certificate Log Page
     st.title("Certificate Log")
     headers = {
-        "apikey": SUPABASE_API_KEY,
-        "Authorization": f"Bearer {SUPABASE_API_KEY}"
+        "apikey": SUPABASE_SERVICE_ROLE_KEY,
+        "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}"
     }
     response = httpx.get(f"{SUPABASE_URL}/rest/v1/certificates", headers=headers)
     if response.status_code == 200:
