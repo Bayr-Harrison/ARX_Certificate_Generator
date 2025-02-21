@@ -81,11 +81,11 @@ with tabs[0]:  # Certificate Generator Page
             name_id_text = f"{name} ({iatc_id})"
             x_center = page.rect.width / 2
             
-            page.insert_text((x_center - 100, 300), name_id_text, fontsize=text_size, fontname=text_font, align=1)
+            page.insert_text((x_center - 100, 300), name_id_text, fontsize=text_size, fontname=text_font)
             
             # Add centered issue date slightly raised
             date_font_size = 30
-            page.insert_text((x_center - 50, 370), issue_date, fontsize=date_font_size, fontname=text_font, align=1)
+            page.insert_text((x_center - 50, 370), issue_date, fontsize=date_font_size, fontname=text_font)
             
             pdf_buffer = io.BytesIO()
             doc.save(pdf_buffer)
