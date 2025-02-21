@@ -100,7 +100,7 @@ with tabs[0]:  # Certificate Generator Page
             x_center_date = (page.rect.width - date_width) / 2
             
             page.insert_text((x_center_name, 300), name_id_text, fontsize=text_size, fontname=text_font, color=(0, 0, 0))
-            page.insert_text((x_center_date, 380), issue_date, fontsize=date_font_size, fontname=text_font, color=(0, 0, 0))
+            page.insert_text((x_center_date, 400), issue_date, fontsize=date_font_size, fontname=text_font, color=(0, 0, 0))
             
             pdf_buffer = io.BytesIO()
             doc.save(pdf_buffer)
