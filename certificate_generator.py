@@ -75,15 +75,15 @@ with tabs[0]:  # Certificate Generator Page
             doc = fitz.open(stream=response.content, filetype="pdf")
             page = doc[0]
             
-            # Define fixed text placement
+            # Define fancy text placement
             name_id_text = f"{name} ({iatc_id})"
             text_font = "times-bold"
             text_size = 50
             date_font_size = 30
             
-            # Use fixed positions for text insertion
-            page.insert_text((250, 300), name_id_text, fontsize=text_size, fontname=text_font)
-            page.insert_text((250, 370), issue_date, fontsize=date_font_size, fontname=text_font)
+            # Center text using insert_textbox
+            page.insert_textbox(fitz.Rect(100, 280, page.rect.width - 100, 350), name_id_text, fontsize=text_size, fontname=text_font, align=1)
+            page.insert_textbox(fitz.Rect(100, 360, page.rect.width - 100, 400), issue_date, fontsize=date_font_size, fontname=text_font, align=1)
             
             pdf_buffer = io.BytesIO()
             doc.save(pdf_buffer)
