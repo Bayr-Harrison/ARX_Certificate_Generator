@@ -117,9 +117,19 @@ with tabs[1]:  # Certificate Log Page
         "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}"
     }
     response = httpx.get(f"{SUPABASE_URL}/rest/v1/certificates", headers=headers)
+    
     if response.status_code == 200:
-        df_log = pd.DataFrame(response.json())
-        df_log["cert_url"] = df_log["cert_url"].apply(lambda x: f'<a href="{x}" target="_blank">{x}</a>')
-        st.markdown(df_log.to_html(escape=False, index=False), unsafe_allow_html=True)
+        data = response.json()
+        df_log = pd.DataFrame(data)
+
+        if df_log.empty:
+            st.warning("No records found in the database.")
+        else:
+            if "cert_url" in df_log.columns:
+                df_log["cert_url"] = df_log["cert_url"].apply(lambda x: f'<a href="{x}" target="_blank">{x}</a>')
+                st.markdown(df_log.to_html(escape=False, index=False), unsafe_allow_html=True)
+            else:
+                st.error("Column 'cert_url' is missing from the API response!")
+                st.dataframe(df_log)
     else:
         st.error(f"Failed to fetch certificate log: {response.text}")
