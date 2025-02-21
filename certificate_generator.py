@@ -66,22 +66,30 @@ with tabs[0]:  # Certificate Generator Page
             iatc_id = row['iatc_id']
             name = row['name']
             issue_date = datetime.strptime(row['issue_date'], "%d/%m/%Y").strftime("%Y-%m-%d")
-            template_path = f"{SUPABASE_URL}/storage/v1/object/public/certificates/templates/{TEMPLATE_MAP[cert_type]}"
+            template_path = f"{SUPABASE_URL}/storage/v1/object/certificates/templates/{TEMPLATE_MAP[cert_type]}"
             file_name = f"{iatc_id}_{TEMPLATE_MAP[cert_type][:3]}_{issue_date}.pdf"
-            cert_url = f"{SUPABASE_URL}/storage/v1/object/public/certificates/issued_certificates/{file_name}"
+            cert_url = f"{SUPABASE_URL}/storage/v1/object/certificates/issued_certificates/{file_name}"
             
             # Load template
             response = httpx.get(template_path)
             doc = fitz.open(stream=response.content, filetype="pdf")
             page = doc[0]
             
-            # Add text to certificate
-            text_font = "helv"
-            text_size = 40
+            # Add text to certificate with a fancy font
+            text_font = "times-bold"
+            text_size = 50
+            name_id_text = f"{name} ({iatc_id})"
+            text_width = page.get_text_length(name_id_text, fontname=text_font, fontsize=text_size)
+            x_center = (page.rect.width - text_width) / 2
             
-            page.insert_text((200, 300), name, fontsize=text_size, fontname=text_font)
-            page.insert_text((200, 350), iatc_id, fontsize=text_size, fontname=text_font)
-            page.insert_text((200, 400), issue_date, fontsize=text_size, fontname=text_font)
+            page.insert_text((x_center, 300), name_id_text, fontsize=text_size, fontname=text_font)
+            
+            # Add centered issue date slightly raised
+            date_font_size = 30
+            date_text_width = page.get_text_length(issue_date, fontname=text_font, fontsize=date_font_size)
+            date_x_center = (page.rect.width - date_text_width) / 2
+            
+            page.insert_text((date_x_center, 380), issue_date, fontsize=date_font_size, fontname=text_font)
             
             pdf_buffer = io.BytesIO()
             doc.save(pdf_buffer)
@@ -111,6 +119,7 @@ with tabs[1]:  # Certificate Log Page
     response = httpx.get(f"{SUPABASE_URL}/rest/v1/certificates", headers=headers)
     if response.status_code == 200:
         df_log = pd.DataFrame(response.json())
-        st.dataframe(df_log)
+        df_log["cert_url"] = df_log["cert_url"].apply(lambda x: f'<a href="{x}" target="_blank">{x}</a>')
+        st.markdown(df_log.to_html(escape=False, index=False), unsafe_allow_html=True)
     else:
         st.error(f"Failed to fetch certificate log: {response.text}")
