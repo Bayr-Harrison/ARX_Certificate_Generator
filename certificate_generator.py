@@ -79,17 +79,13 @@ with tabs[0]:  # Certificate Generator Page
             text_font = "times-bold"
             text_size = 50
             name_id_text = f"{name} ({iatc_id})"
-            text_width = page.get_text_length(name_id_text, fontname=text_font, fontsize=text_size)
-            x_center = (page.rect.width - text_width) / 2
+            x_center = page.rect.width / 2
             
-            page.insert_text((x_center, 300), name_id_text, fontsize=text_size, fontname=text_font)
+            page.insert_textbox(fitz.Rect(x_center - 200, 300, x_center + 200, 350), name_id_text, fontsize=text_size, fontname=text_font, align=1)
             
             # Add centered issue date slightly raised
             date_font_size = 30
-            date_text_width = page.get_text_length(issue_date, fontname=text_font, fontsize=date_font_size)
-            date_x_center = (page.rect.width - date_text_width) / 2
-            
-            page.insert_text((date_x_center, 380), issue_date, fontsize=date_font_size, fontname=text_font)
+            page.insert_textbox(fitz.Rect(x_center - 200, 370, x_center + 200, 400), issue_date, fontsize=date_font_size, fontname=text_font, align=1)
             
             pdf_buffer = io.BytesIO()
             doc.save(pdf_buffer)
