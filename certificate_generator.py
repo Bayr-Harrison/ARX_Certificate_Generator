@@ -88,7 +88,7 @@ with tabs[0]:  # Certificate Generator Page
             # Define fancy text placement
             name_id_text = f"{name} ({iatc_id})"
             text_font = "Times-Bold"
-            text_size = 30
+            text_size = 25
             date_font_size = 25
             
             # Calculate text width for centering
@@ -100,7 +100,7 @@ with tabs[0]:  # Certificate Generator Page
             x_center_date = (page.rect.width - date_width) / 2
             
             page.insert_text((x_center_name, 300), name_id_text, fontsize=text_size, fontname=text_font, color=(0, 0, 0))
-            page.insert_text((x_center_date, 366), issue_date, fontsize=date_font_size, fontname=text_font, color=(0, 0, 0))
+            page.insert_text((x_center_date, 368), issue_date, fontsize=date_font_size, fontname=text_font, color=(0, 0, 0))
             
             pdf_buffer = io.BytesIO()
             doc.save(pdf_buffer)
