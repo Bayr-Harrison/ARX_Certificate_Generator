@@ -75,24 +75,15 @@ with tabs[0]:  # Certificate Generator Page
             doc = fitz.open(stream=response.content, filetype="pdf")
             page = doc[0]
             
-            # Ensure page.rect attribute exists
-            if hasattr(page, 'rect'):
-                page_rect = page.rect
-                x_center = (page_rect.x1 - page_rect.x0) / 2
-            else:
-                st.error("Error: Could not retrieve page dimensions.")
-                continue
-            
-            # Add text to certificate with a fancy font
+            # Define fixed text placement
+            name_id_text = f"{name} ({iatc_id})"
             text_font = "times-bold"
             text_size = 50
-            name_id_text = f"{name} ({iatc_id})"
-            
-            page.insert_text((x_center - 100, 300), name_id_text, fontsize=text_size, fontname=text_font)
-            
-            # Add centered issue date slightly raised
             date_font_size = 30
-            page.insert_text((x_center - 50, 370), issue_date, fontsize=date_font_size, fontname=text_font)
+            
+            # Use fixed positions for text insertion
+            page.insert_text((250, 300), name_id_text, fontsize=text_size, fontname=text_font)
+            page.insert_text((250, 370), issue_date, fontsize=date_font_size, fontname=text_font)
             
             pdf_buffer = io.BytesIO()
             doc.save(pdf_buffer)
