@@ -2,4 +2,4 @@ streamlit
 pandas
 pymupdf
 requests
-supabase-py
+httpx
