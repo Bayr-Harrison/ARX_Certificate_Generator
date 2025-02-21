@@ -81,9 +81,16 @@ with tabs[0]:  # Certificate Generator Page
             text_size = 50
             date_font_size = 30
             
-            # Ensure text is drawn correctly on PDF
-            page.insert_text((page.rect.width / 2 - 150, 300), name_id_text, fontsize=text_size, fontname=text_font, color=(0, 0, 0))
-            page.insert_text((page.rect.width / 2 - 75, 370), issue_date, fontsize=date_font_size, fontname=text_font, color=(0, 0, 0))
+            # Calculate text width for centering
+            text_width = fitz.get_text_length(name_id_text, fontsize=text_size, fontname=text_font)
+            date_width = fitz.get_text_length(issue_date, fontsize=date_font_size, fontname=text_font)
+            
+            # Center text horizontally
+            x_center_name = (page.rect.width - text_width) / 2
+            x_center_date = (page.rect.width - date_width) / 2
+            
+            page.insert_text((x_center_name, 300), name_id_text, fontsize=text_size, fontname=text_font, color=(0, 0, 0))
+            page.insert_text((x_center_date, 370), issue_date, fontsize=date_font_size, fontname=text_font, color=(0, 0, 0))
             
             pdf_buffer = io.BytesIO()
             doc.save(pdf_buffer)
