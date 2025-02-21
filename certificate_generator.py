@@ -11,6 +11,9 @@ SUPABASE_URL = "https://yetmtzyyztirghaxnccp.supabase.co"
 SUPABASE_SERVICE_ROLE_KEY = st.secrets["SUPABASE_SERVICE_ROLE_KEY"]
 CERTIFICATE_GENERATOR_PASSWORD = st.secrets["CERTIFICATE_GENERATOR_PASSWORD"]
 
+# Set page config first
+st.set_page_config(page_title="Certificate Generator", layout="wide")
+
 # Authentication
 st.title("Certificate Generator App")
 password = st.text_input("Enter Password:", type="password")
@@ -55,7 +58,6 @@ def upload_certificate_to_supabase(pdf_bytes, file_name):
         st.error(f"Failed to upload {file_name}: {response.text}")
         return None
 
-st.set_page_config(page_title="Certificate Generator", layout="wide")
 tabs = st.tabs(["Certificate Generator", "Certificate Log"])
 
 with tabs[0]:  # Certificate Generator Page
