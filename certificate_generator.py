@@ -39,7 +39,7 @@ def upload_certificate_to_supabase(pdf_bytes, file_name):
         "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}",
         "Content-Type": "application/pdf"
     }
-    upload_url = f"{SUPABASE_URL}/storage/v1/object/public/certificates/issued_certificates/{file_name}"
+    upload_url = f"{SUPABASE_URL}/storage/v1/object/certificates/issued_certificates/{file_name}"
     response = httpx.put(upload_url, content=pdf_bytes, headers=headers)
     if response.status_code == 200:
         return upload_url
