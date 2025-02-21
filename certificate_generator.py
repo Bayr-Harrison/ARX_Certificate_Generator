@@ -9,6 +9,14 @@ import httpx
 # Supabase Configuration
 SUPABASE_URL = "https://yetmtzyyztirghaxnccp.supabase.co"
 SUPABASE_SERVICE_ROLE_KEY = st.secrets["SUPABASE_SERVICE_ROLE_KEY"]
+CERTIFICATE_GENERATOR_PASSWORD = st.secrets["CERTIFICATE_GENERATOR_PASSWORD"]
+
+# Authentication
+st.title("Certificate Generator App")
+password = st.text_input("Enter Password:", type="password")
+if password != CERTIFICATE_GENERATOR_PASSWORD:
+    st.error("Incorrect password. Access denied.")
+    st.stop()
 
 # Certificate template mapping
 TEMPLATE_MAP = {
@@ -78,8 +86,8 @@ with tabs[0]:  # Certificate Generator Page
             # Define fancy text placement
             name_id_text = f"{name} ({iatc_id})"
             text_font = "Times-Bold"
-            text_size = 40
-            date_font_size = 20
+            text_size = 50
+            date_font_size = 30
             
             # Calculate text width for centering
             text_width = fitz.get_text_length(name_id_text, fontsize=text_size, fontname=text_font)
@@ -90,7 +98,7 @@ with tabs[0]:  # Certificate Generator Page
             x_center_date = (page.rect.width - date_width) / 2
             
             page.insert_text((x_center_name, 300), name_id_text, fontsize=text_size, fontname=text_font, color=(0, 0, 0))
-            page.insert_text((x_center_date, 360), issue_date, fontsize=date_font_size, fontname=text_font, color=(0, 0, 0))
+            page.insert_text((x_center_date, 370), issue_date, fontsize=date_font_size, fontname=text_font, color=(0, 0, 0))
             
             pdf_buffer = io.BytesIO()
             doc.save(pdf_buffer)
@@ -126,11 +134,14 @@ with tabs[1]:  # Certificate Log Page
         if df_log.empty:
             st.warning("No records found in the database.")
         else:
-            if "cert_url" in df_log.columns:
-                df_log["cert_url"] = df_log["cert_url"].apply(lambda x: f'<a href="{x}" target="_blank">{x}</a>')
-                st.markdown(df_log.to_html(escape=False, index=False), unsafe_allow_html=True)
-            else:
-                st.error("Column 'cert_url' is missing from the API response!")
-                st.dataframe(df_log)
+            st.dataframe(df_log, use_container_width=True)
+            filter_columns = st.multiselect("Filter by columns:", df_log.columns)
+            if filter_columns:
+                for col in filter_columns:
+                    unique_values = df_log[col].unique()
+                    selected_values = st.multiselect(f"Select {col}", unique_values)
+                    if selected_values:
+                        df_log = df_log[df_log[col].isin(selected_values)]
+                st.dataframe(df_log, use_container_width=True)
     else:
         st.error(f"Failed to fetch certificate log: {response.text}")
