@@ -6,6 +6,8 @@ import io
 import zipfile
 from datetime import datetime
 import httpx
+import qrcode
+from PIL import Image
 
 # Supabase Configuration
 SUPABASE_URL = "https://yetmtzyyztirghaxnccp.supabase.co"
@@ -34,7 +36,6 @@ st.markdown(
     f'<a href="{cert_gen_template_url}" download><button style="background-color: #4CAF50; border: none; color: white; padding: 10px 20px; text-align: center; text-decoration: none; display: inline-block; font-size: 16px; margin: 10px 2px; cursor: pointer; border-radius: 5px;">Download Certificate Generator Tool</button></a>',
     unsafe_allow_html=True
 )
-
 
 def insert_certificate(iatc_id, name, issue_date, cert_type, cert_url):
     headers = {
@@ -98,6 +99,20 @@ with tabs[0]:  # Certificate Generator Page
             doc = fitz.open(stream=response.content, filetype="pdf")
             page = doc[0]
 
+            # Generate QR Code with cert_url
+            qr = qrcode.make(cert_url)
+            qr_img = qr.get_image()
+
+            # Convert QR Code to Bytes
+            qr_buffer = io.BytesIO()
+            qr_img.save(qr_buffer, format="PNG")
+            qr_buffer.seek(0)
+
+            # Insert QR Code Image at the Top-Left Corner
+            rect_x, rect_y = 50, 50  # Adjust position
+            qr_img_fit = fitz.Pixmap(qr_buffer)
+            page.insert_image(fitz.Rect(rect_x, rect_y, rect_x + 100, rect_y + 100), pixmap=qr_img_fit)
+
             # Define text placement
             name_id_text = f"{name} ({iatc_id})"
             text_font = "Times-Bold"
@@ -144,13 +159,11 @@ with tabs[1]:  # Certificate Log Page
         else:
             # Convert cert_url column to clickable icons
             df_log["cert_url"] = df_log["cert_url"].apply(
-                lambda x: f'<a href="{x}" target="_blank" style="text-decoration: none; color: blue;">🔗</a>'
+                lambda x: f'<a href="{x}" target="_blank"><img src="https://img.icons8.com/ios-filled/20/000000/external-link.png"/></a>'
             )
-
-            # Display as markdown for proper clickable icons
             st.write(df_log.to_html(escape=False, index=False), unsafe_allow_html=True)
 
-            # Filtering option
+            # Add filtering
             filter_columns = st.multiselect("Filter by columns:", df_log.columns)
             if filter_columns:
                 for col in filter_columns:
