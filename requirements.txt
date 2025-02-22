@@ -3,3 +3,5 @@ pandas
 pymupdf
 requests
 httpx
+pillow
+qrcode
