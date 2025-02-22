@@ -142,10 +142,12 @@ with tabs[1]:  # Certificate Log Page
         if df_log.empty:
             st.warning("No records found in the database.")
         else:
-            # Convert cert_url column to clickable links
-            df_log["cert_url"] = df_log["cert_url"].apply(lambda x: f'<a href="{x}" target="_blank">{x}</a>')
+            # Convert cert_url column to clickable icons
+            df_log["cert_url"] = df_log["cert_url"].apply(
+                lambda x: f'<a href="{x}" target="_blank" style="text-decoration: none; color: blue;">🔗</a>'
+            )
 
-            # Display as markdown for proper clickable links
+            # Display as markdown for proper clickable icons
             st.write(df_log.to_html(escape=False, index=False), unsafe_allow_html=True)
 
             # Filtering option
