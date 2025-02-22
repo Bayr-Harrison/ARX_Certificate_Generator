@@ -28,7 +28,7 @@ TEMPLATE_MAP = {
 }
 
 # Download CSV template button
-template_csv_url = "https://raw.githubusercontent.com/bayr-harrison/ARX_Certificate_Generator/main/certificate_generator_template.csv"
+template_csv_url = "https://raw.githubusercontent.com/bayr-harrison/ARX_Certificate_Generator/blob/main/certificate_generator_template.csv"
 with open("certificate_generator_template.csv", "wb") as file:
     file.write(httpx.get(template_csv_url).content)
 with open("certificate_generator_template.csv", "rb") as file:
