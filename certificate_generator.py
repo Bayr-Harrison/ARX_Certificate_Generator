@@ -109,7 +109,7 @@ with tabs[0]:  # Certificate Generator Page
             qr_buffer.seek(0)
 
             # Insert QR Code Image at the Top-Left Corner
-            rect_x, rect_y = 50, 50  # Adjust position
+            rect_x, rect_y = 50, 35  # Adjust position
             qr_img_fit = fitz.Pixmap(qr_buffer)
             page.insert_image(fitz.Rect(rect_x, rect_y, rect_x + 100, rect_y + 100), pixmap=qr_img_fit)
 
