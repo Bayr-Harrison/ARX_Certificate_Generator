@@ -28,29 +28,13 @@ TEMPLATE_MAP = {
     "Student of the Month": "002.pdf"
 }
 
-# URL of the CSV file
-template_csv_url = "https://raw.githubusercontent.com/Bayr-Harrison/ARX_Certificate_Generator/main/certificate_generator_template.csv"
+# Add download link for Coversheet Tool
+coversheet_tool_url = "https://raw.githubusercontent.com/Bayr-Harrison/vocational_assessment_reporting/main/coversheet_tool.xlsx"
+st.markdown(
+    f'<a href="{coversheet_tool_url}" download><button style="background-color: #4CAF50; border: none; color: white; padding: 10px 20px; text-align: center; text-decoration: none; display: inline-block; font-size: 16px; margin: 10px 2px; cursor: pointer; border-radius: 5px;">Download Coversheet Tool</button></a>',
+    unsafe_allow_html=True
+)
 
-def download_csv():
-    response = requests.get(template_csv_url)
-    if response.status_code == 200:
-        return response.content
-    else:
-        st.error("Failed to download the file.")
-        return None
-
-st.title("CSV File Downloader")
-
-st.write("Click the button below to download the CSV file.")
-
-csv_data = download_csv()
-if csv_data:
-    st.download_button(
-        label="Download CSV",
-        data=csv_data,
-        file_name="certificate_generator_template.csv",
-        mime="text/csv"
-    )
 
 def insert_certificate(iatc_id, name, issue_date, cert_type, cert_url):
     headers = {
