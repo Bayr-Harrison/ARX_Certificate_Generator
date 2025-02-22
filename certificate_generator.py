@@ -1,4 +1,5 @@
 import streamlit as st
+import requests
 import pandas as pd
 import fitz  # PyMuPDF
 import io
@@ -27,22 +28,29 @@ TEMPLATE_MAP = {
     "Student of the Month": "002.pdf"
 }
 
-# Download CSV template button
-template_csv_url = "https://raw.githubusercontent.com/bayr-harrison/ARX_Certificate_Generator/main/certificate_generator_template.csv"
-response = httpx.get(template_csv_url)
-if response.status_code == 200:
-    csv_data = response.content
+# URL of the CSV file
+template_csv_url = "https://raw.githubusercontent.com/Bayr-Harrison/ARX_Certificate_Generator/main/certificate_generator_template.csv"
+
+def download_csv():
+    response = requests.get(template_csv_url)
+    if response.status_code == 200:
+        return response.content
+    else:
+        st.error("Failed to download the file.")
+        return None
+
+st.title("CSV File Downloader")
+
+st.write("Click the button below to download the CSV file.")
+
+csv_data = download_csv()
+if csv_data:
     st.download_button(
-        label="📥 Download CSV Template",
+        label="Download CSV",
         data=csv_data,
         file_name="certificate_generator_template.csv",
-        mime="text/csv",
-        type="primary",
-        icon="📄",
-        use_container_width=True
+        mime="text/csv"
     )
-else:
-    st.error("Failed to fetch the CSV template. Please check the URL.")
 
 def insert_certificate(iatc_id, name, issue_date, cert_type, cert_url):
     headers = {
