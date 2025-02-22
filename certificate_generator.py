@@ -142,7 +142,13 @@ with tabs[1]:  # Certificate Log Page
         if df_log.empty:
             st.warning("No records found in the database.")
         else:
-            st.dataframe(df_log, use_container_width=True)
+            # Convert cert_url column to clickable links
+            df_log["cert_url"] = df_log["cert_url"].apply(lambda x: f'<a href="{x}" target="_blank">{x}</a>')
+
+            # Display as markdown for proper clickable links
+            st.write(df_log.to_html(escape=False, index=False), unsafe_allow_html=True)
+
+            # Filtering option
             filter_columns = st.multiselect("Filter by columns:", df_log.columns)
             if filter_columns:
                 for col in filter_columns:
@@ -150,6 +156,6 @@ with tabs[1]:  # Certificate Log Page
                     selected_values = st.multiselect(f"Select {col}", unique_values)
                     if selected_values:
                         df_log = df_log[df_log[col].isin(selected_values)]
-                st.dataframe(df_log, use_container_width=True)
+                st.write(df_log.to_html(escape=False, index=False), unsafe_allow_html=True)
     else:
         st.error(f"Failed to fetch certificate log: {response.text}")
