@@ -29,7 +29,7 @@ TEMPLATE_MAP = {
 }
 
 # Add download link for Coversheet Tool
-cert_gen_template_url = "https://raw.githubusercontent.com/bayr-harrison/ARX_Certificate_Generator/main/certificate_generator_template.csv"
+cert_gen_template_url = "https://raw.githubusercontent.com/bayr-harrison/ARX_Certificate_Generator/main/certificate_generator_template.xlsx"
 st.markdown(
     f'<a href="{cert_gen_template_url}" download><button style="background-color: #4CAF50; border: none; color: white; padding: 10px 20px; text-align: center; text-decoration: none; display: inline-block; font-size: 16px; margin: 10px 2px; cursor: pointer; border-radius: 5px;">Download Certificate Generator Tool</button></a>',
     unsafe_allow_html=True
