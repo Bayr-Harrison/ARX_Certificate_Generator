@@ -110,7 +110,7 @@ with tabs[0]:  # Certificate Generator Page
 
             # Insert QR Code Image - moved down and slightly to the right
             qr_x = 80  # Increased from 50 to move right
-            qr_y = 100  # Increased from 35 to move down
+            qr_y = 180  # Increased from 35 to move down
             qr_img_fit = fitz.Pixmap(qr_buffer)
             page.insert_image(fitz.Rect(qr_x, qr_y, qr_x + 100, qr_y + 100), pixmap=qr_img_fit)
 
@@ -129,7 +129,7 @@ with tabs[0]:  # Certificate Generator Page
 
             # Insert text into PDF
             page.insert_text((x_center_name, 300), name_id_text, fontsize=text_size, fontname=text_font, color=(0, 0, 0))
-            page.insert_text((x_center_date, 390), issue_date, fontsize=date_font_size, fontname=text_font, color=(0, 0, 0))  # Moved up slightly
+            page.insert_text((x_center_date, 380), issue_date, fontsize=date_font_size, fontname=text_font, color=(0, 0, 0))  # Moved up slightly
 
             pdf_buffer = io.BytesIO()
             doc.save(pdf_buffer)
