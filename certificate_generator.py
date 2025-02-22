@@ -167,4 +167,18 @@ with tabs[1]:  # Certificate Log Page
         else:
             # Convert cert_url column to clickable icons
             df_log["cert_url"] = df_log["cert_url"].apply(
-                lambda x: f
+                lambda x: f'<a href="{x}" target="_blank"><img src="https://img.icons8.com/ios-filled/20/000000/external-link.png"/></a>'
+            )
+            st.write(df_log.to_html(escape=False, index=False), unsafe_allow_html=True)
+
+            # Add filtering
+            filter_columns = st.multiselect("Filter by columns:", df_log.columns)
+            if filter_columns:
+                for col in filter_columns:
+                    unique_values = df_log[col].unique()
+                    selected_values = st.multiselect(f"Select {col}", unique_values)
+                    if selected_values:
+                        df_log = df_log[df_log[col].isin(selected_values)]
+                st.write(df_log.to_html(escape=False, index=False), unsafe_allow_html=True)
+    else:
+        st.error(f"Failed to fetch certificate log: {response.text}")
