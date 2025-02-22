@@ -29,9 +29,9 @@ TEMPLATE_MAP = {
 }
 
 # Add download link for Coversheet Tool
-coversheet_tool_url = "https://raw.githubusercontent.com/Bayr-Harrison/vocational_assessment_reporting/main/coversheet_tool.xlsx"
+cert_gen_template_url = "https://raw.githubusercontent.com/Bayr-Harrison/ARX/Certificate_Generator/main/certificate_generator_template.csv"
 st.markdown(
-    f'<a href="{coversheet_tool_url}" download><button style="background-color: #4CAF50; border: none; color: white; padding: 10px 20px; text-align: center; text-decoration: none; display: inline-block; font-size: 16px; margin: 10px 2px; cursor: pointer; border-radius: 5px;">Download Coversheet Tool</button></a>',
+    f'<a href="{cert_gen_template_url}" download><button style="background-color: #4CAF50; border: none; color: white; padding: 10px 20px; text-align: center; text-decoration: none; display: inline-block; font-size: 16px; margin: 10px 2px; cursor: pointer; border-radius: 5px;">Download Certificate Generator Tool</button></a>',
     unsafe_allow_html=True
 )
 
