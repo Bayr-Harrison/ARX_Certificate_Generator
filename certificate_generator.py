@@ -108,10 +108,11 @@ with tabs[0]:  # Certificate Generator Page
             qr_img.save(qr_buffer, format="PNG")
             qr_buffer.seek(0)
 
-            # Insert QR Code Image at the Top-Left Corner
-            rect_x, rect_y = 50, 35  # Adjust position
+            # Insert QR Code Image - moved down and slightly to the right
+            qr_x = 80  # Increased from 50 to move right
+            qr_y = 100  # Increased from 35 to move down
             qr_img_fit = fitz.Pixmap(qr_buffer)
-            page.insert_image(fitz.Rect(rect_x, rect_y, rect_x + 100, rect_y + 100), pixmap=qr_img_fit)
+            page.insert_image(fitz.Rect(qr_x, qr_y, qr_x + 100, qr_y + 100), pixmap=qr_img_fit)
 
             # Define text placement
             name_id_text = f"{name} ({iatc_id})"
@@ -119,9 +120,16 @@ with tabs[0]:  # Certificate Generator Page
             text_size = 30
             date_font_size = 20
 
+            # Center text horizontally
+            text_width = fitz.get_text_length(name_id_text, fontsize=text_size, fontname=text_font)
+            date_width = fitz.get_text_length(issue_date, fontsize=date_font_size, fontname=text_font)
+
+            x_center_name = (page.rect.width - text_width) / 2
+            x_center_date = (page.rect.width - date_width) / 2
+
             # Insert text into PDF
-            page.insert_text((page.rect.width / 2 - 150, 300), name_id_text, fontsize=text_size, fontname=text_font, color=(0, 0, 0))
-            page.insert_text((page.rect.width / 2 - 100, 400), issue_date, fontsize=date_font_size, fontname=text_font, color=(0, 0, 0))
+            page.insert_text((x_center_name, 300), name_id_text, fontsize=text_size, fontname=text_font, color=(0, 0, 0))
+            page.insert_text((x_center_date, 390), issue_date, fontsize=date_font_size, fontname=text_font, color=(0, 0, 0))  # Moved up slightly
 
             pdf_buffer = io.BytesIO()
             doc.save(pdf_buffer)
@@ -159,18 +167,4 @@ with tabs[1]:  # Certificate Log Page
         else:
             # Convert cert_url column to clickable icons
             df_log["cert_url"] = df_log["cert_url"].apply(
-                lambda x: f'<a href="{x}" target="_blank"><img src="https://img.icons8.com/ios-filled/20/000000/external-link.png"/></a>'
-            )
-            st.write(df_log.to_html(escape=False, index=False), unsafe_allow_html=True)
-
-            # Add filtering
-            filter_columns = st.multiselect("Filter by columns:", df_log.columns)
-            if filter_columns:
-                for col in filter_columns:
-                    unique_values = df_log[col].unique()
-                    selected_values = st.multiselect(f"Select {col}", unique_values)
-                    if selected_values:
-                        df_log = df_log[df_log[col].isin(selected_values)]
-                st.write(df_log.to_html(escape=False, index=False), unsafe_allow_html=True)
-    else:
-        st.error(f"Failed to fetch certificate log: {response.text}")
+                lambda x: f
