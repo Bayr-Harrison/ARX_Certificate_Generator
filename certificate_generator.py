@@ -82,9 +82,13 @@ with tabs[0]:  # Certificate Generator Page
         cert_links = []
 
         for index, row in df.iterrows():
+            try:
+                issue_date = datetime.strptime(str(row['issue_date']).strip(), "%d/%m/%Y").strftime("%Y-%m-%d")
+            except ValueError:
+                continue  # Skip rows with invalid dates
+
             iatc_id = row['iatc_id']
             name = row['name']
-            issue_date = datetime.strptime(row['issue_date'], "%d/%m/%Y").strftime("%Y-%m-%d")
             template_path = f"{SUPABASE_URL}/storage/v1/object/certificates/templates/{TEMPLATE_MAP[cert_type]}"
             file_name = f"{iatc_id}_{TEMPLATE_MAP[cert_type][:3]}_{issue_date}.pdf"
             cert_url = f"{SUPABASE_URL}/storage/v1/object/certificates/issued_certificates/{file_name}"
@@ -94,22 +98,15 @@ with tabs[0]:  # Certificate Generator Page
             doc = fitz.open(stream=response.content, filetype="pdf")
             page = doc[0]
 
-            # Define fancy text placement
+            # Define text placement
             name_id_text = f"{name} ({iatc_id})"
             text_font = "Times-Bold"
             text_size = 30
             date_font_size = 20
 
-            # Calculate text width for centering
-            text_width = fitz.get_text_length(name_id_text, fontsize=text_size, fontname=text_font)
-            date_width = fitz.get_text_length(issue_date, fontsize=date_font_size, fontname=text_font)
-
-            # Center text horizontally
-            x_center_name = (page.rect.width - text_width) / 2
-            x_center_date = (page.rect.width - date_width) / 2
-
-            page.insert_text((x_center_name, 300), name_id_text, fontsize=text_size, fontname=text_font, color=(0, 0, 0))
-            page.insert_text((x_center_date, 385), issue_date, fontsize=date_font_size, fontname=text_font, color=(0, 0, 0))
+            # Insert text into PDF
+            page.insert_text((page.rect.width / 2 - 150, 300), name_id_text, fontsize=text_size, fontname=text_font, color=(0, 0, 0))
+            page.insert_text((page.rect.width / 2 - 100, 400), issue_date, fontsize=date_font_size, fontname=text_font, color=(0, 0, 0))
 
             pdf_buffer = io.BytesIO()
             doc.save(pdf_buffer)
