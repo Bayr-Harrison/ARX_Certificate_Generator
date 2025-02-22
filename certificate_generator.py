@@ -27,6 +27,10 @@ TEMPLATE_MAP = {
     "Student of the Month": "002.pdf"
 }
 
+# Download CSV template button
+template_csv_url = "https://raw.githubusercontent.com/yourusername/ARX_Certificate_Generator/main/certificate_generator_template.csv"
+st.markdown(f"[Download CSV Template]("{template_csv_url}")", unsafe_allow_html=True)
+
 def insert_certificate(iatc_id, name, issue_date, cert_type, cert_url):
     headers = {
         "apikey": SUPABASE_SERVICE_ROLE_KEY,
@@ -88,8 +92,8 @@ with tabs[0]:  # Certificate Generator Page
             # Define fancy text placement
             name_id_text = f"{name} ({iatc_id})"
             text_font = "Times-Bold"
-            text_size = 25
-            date_font_size = 25
+            text_size = 50
+            date_font_size = 30
             
             # Calculate text width for centering
             text_width = fitz.get_text_length(name_id_text, fontsize=text_size, fontname=text_font)
@@ -100,7 +104,7 @@ with tabs[0]:  # Certificate Generator Page
             x_center_date = (page.rect.width - date_width) / 2
             
             page.insert_text((x_center_name, 300), name_id_text, fontsize=text_size, fontname=text_font, color=(0, 0, 0))
-            page.insert_text((x_center_date, 400), issue_date, fontsize=date_font_size, fontname=text_font, color=(0, 0, 0))
+            page.insert_text((x_center_date, 380), issue_date, fontsize=date_font_size, fontname=text_font, color=(0, 0, 0))
             
             pdf_buffer = io.BytesIO()
             doc.save(pdf_buffer)
