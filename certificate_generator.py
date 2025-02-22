@@ -28,16 +28,21 @@ TEMPLATE_MAP = {
 }
 
 # Download CSV template button
-template_csv_url = "https://raw.githubusercontent.com/bayr-harrison/ARX_Certificate_Generator/blob/main/certificate_generator_template.csv"
-with open("certificate_generator_template.csv", "wb") as file:
-    file.write(httpx.get(template_csv_url).content)
-with open("certificate_generator_template.csv", "rb") as file:
+template_csv_url = "https://raw.githubusercontent.com/bayr-harrison/ARX_Certificate_Generator/main/certificate_generator_template.csv"
+response = httpx.get(template_csv_url)
+if response.status_code == 200:
+    csv_data = response.content
     st.download_button(
         label="📥 Download CSV Template",
-        data=file,
+        data=csv_data,
         file_name="certificate_generator_template.csv",
-        mime="text/csv"
+        mime="text/csv",
+        type="primary",
+        icon="📄",
+        use_container_width=True
     )
+else:
+    st.error("Failed to fetch the CSV template. Please check the URL.")
 
 def insert_certificate(iatc_id, name, issue_date, cert_type, cert_url):
     headers = {
