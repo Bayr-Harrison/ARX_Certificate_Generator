@@ -29,7 +29,10 @@ TEMPLATE_MAP = {
 
 # Download CSV template button
 template_csv_url = "https://raw.githubusercontent.com/bayr-harrison/ARX_Certificate_Generator/main/certificate_generator_template.csv"
-st.markdown(f'<a href="{template_csv_url}" download>Download CSV Template</a>', unsafe_allow_html=True)
+st.markdown(
+    f'<a href="{template_csv_url}" download="certificate_generator_template.csv">📥 Download CSV Template</a>',
+    unsafe_allow_html=True
+)
 
 def insert_certificate(iatc_id, name, issue_date, cert_type, cert_url):
     headers = {
@@ -73,9 +76,9 @@ with tabs[0]:  # Certificate Generator Page
         df = pd.read_csv(uploaded_file)
         zip_buffer = io.BytesIO()
         zipf = zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED)
-        
+
         cert_links = []
-        
+
         for index, row in df.iterrows():
             iatc_id = row['iatc_id']
             name = row['name']
@@ -83,46 +86,46 @@ with tabs[0]:  # Certificate Generator Page
             template_path = f"{SUPABASE_URL}/storage/v1/object/certificates/templates/{TEMPLATE_MAP[cert_type]}"
             file_name = f"{iatc_id}_{TEMPLATE_MAP[cert_type][:3]}_{issue_date}.pdf"
             cert_url = f"{SUPABASE_URL}/storage/v1/object/certificates/issued_certificates/{file_name}"
-            
+
             # Load template
             response = httpx.get(template_path)
             doc = fitz.open(stream=response.content, filetype="pdf")
             page = doc[0]
-            
+
             # Define fancy text placement
             name_id_text = f"{name} ({iatc_id})"
             text_font = "Times-Bold"
             text_size = 50
             date_font_size = 30
-            
+
             # Calculate text width for centering
             text_width = fitz.get_text_length(name_id_text, fontsize=text_size, fontname=text_font)
             date_width = fitz.get_text_length(issue_date, fontsize=date_font_size, fontname=text_font)
-            
+
             # Center text horizontally
             x_center_name = (page.rect.width - text_width) / 2
             x_center_date = (page.rect.width - date_width) / 2
-            
+
             page.insert_text((x_center_name, 300), name_id_text, fontsize=text_size, fontname=text_font, color=(0, 0, 0))
             page.insert_text((x_center_date, 380), issue_date, fontsize=date_font_size, fontname=text_font, color=(0, 0, 0))
-            
+
             pdf_buffer = io.BytesIO()
             doc.save(pdf_buffer)
             pdf_buffer.seek(0)
-            
+
             # Upload certificate to Supabase
             uploaded_cert_url = upload_certificate_to_supabase(pdf_buffer.getvalue(), file_name)
             if uploaded_cert_url:
                 insert_certificate(iatc_id, name, issue_date, cert_type, uploaded_cert_url)
-            
+
             # Save to zip file
             zipf.writestr(file_name, pdf_buffer.getvalue())
             cert_links.append(uploaded_cert_url)
-        
+
         zipf.close()
         zip_buffer.seek(0)
         st.download_button("Download Certificates (ZIP)", zip_buffer, file_name="certificates.zip", mime="application/zip")
-        
+
         st.success("Certificates generated and uploaded successfully!")
 
 with tabs[1]:  # Certificate Log Page
@@ -132,7 +135,7 @@ with tabs[1]:  # Certificate Log Page
         "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}"
     }
     response = httpx.get(f"{SUPABASE_URL}/rest/v1/certificates", headers=headers)
-    
+
     if response.status_code == 200:
         data = response.json()
         df_log = pd.DataFrame(data)
