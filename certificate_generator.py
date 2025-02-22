@@ -29,7 +29,7 @@ TEMPLATE_MAP = {
 
 # Download CSV template button
 template_csv_url = "https://raw.githubusercontent.com/yourusername/ARX_Certificate_Generator/main/certificate_generator_template.csv"
-st.markdown(f"[Download CSV Template]("{template_csv_url}")", unsafe_allow_html=True)
+st.markdown(f'<a href="{template_csv_url}" download>Download CSV Template</a>', unsafe_allow_html=True)
 
 def insert_certificate(iatc_id, name, issue_date, cert_type, cert_url):
     headers = {
