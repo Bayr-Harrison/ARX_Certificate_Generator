@@ -37,7 +37,7 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-def insert_certificate(iatc_id, name, issue_date, cert_type, cert_url):
+def insert_certificate(iatc_id, name, issue_date, cert_type, cert_url, cert_number):
     headers = {
         "apikey": SUPABASE_SERVICE_ROLE_KEY,
         "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}",
@@ -48,7 +48,8 @@ def insert_certificate(iatc_id, name, issue_date, cert_type, cert_url):
         "name": name,
         "issue_date": issue_date,
         "cert_type": cert_type,
-        "cert_url": cert_url
+        "cert_url": cert_url,
+        "cert_number": cert_number
     }
     response = httpx.post(f"{SUPABASE_URL}/rest/v1/certificates", json=data, headers=headers)
     if response.status_code != 201:
@@ -70,7 +71,7 @@ def upload_certificate_to_supabase(pdf_bytes, file_name):
 
 tabs = st.tabs(["Certificate Generator", "Certificate Log"])
 
-with tabs[0]:  # Certificate Generator Page
+with tabs[0]:
     st.title("Certificate Generator")
     cert_type = st.selectbox("Select Certificate Type", list(TEMPLATE_MAP.keys()))
     uploaded_file = st.file_uploader("Upload CSV file", type=["csv"])
@@ -90,8 +91,13 @@ with tabs[0]:  # Certificate Generator Page
 
             iatc_id = row['iatc_id']
             name = row['name']
+            # Extract the template code (first three characters of the template filename)
+            template_code = TEMPLATE_MAP[cert_type][:3]
+            # Generate the certificate number
+            cert_number = f"{iatc_id}-{template_code}-{issue_date}"
+            
             template_path = f"{SUPABASE_URL}/storage/v1/object/certificates/templates/{TEMPLATE_MAP[cert_type]}"
-            file_name = f"{iatc_id}_{TEMPLATE_MAP[cert_type][:3]}_{issue_date}.pdf"
+            file_name = f"{iatc_id}_{template_code}_{issue_date}.pdf"
             cert_url = f"{SUPABASE_URL}/storage/v1/object/certificates/issued_certificates/{file_name}"
 
             # Load template
@@ -99,6 +105,14 @@ with tabs[0]:  # Certificate Generator Page
             doc = fitz.open(stream=response.content, filetype="pdf")
             page = doc[0]
 
+            # Insert cert_number at the top right corner of the PDF
+            text_font = "Times-Bold"
+            cert_number_font_size = 20  # Adjust font size as needed
+            cert_number_text_width = fitz.get_text_length(cert_number, fontsize=cert_number_font_size, fontname=text_font)
+            x_cert_number = page.rect.width - cert_number_text_width - 20  # 20 units margin from right edge
+            y_cert_number = 20  # 20 units margin from top edge
+            page.insert_text((x_cert_number, y_cert_number), cert_number, fontsize=cert_number_font_size, fontname=text_font, color=(0, 0, 0))
+            
             # Generate QR Code with cert_url
             qr = qrcode.make(cert_url)
             qr_img = qr.get_image()
@@ -108,28 +122,25 @@ with tabs[0]:  # Certificate Generator Page
             qr_img.save(qr_buffer, format="PNG")
             qr_buffer.seek(0)
 
-            # Insert QR Code Image - moved down and slightly to the right
-            qr_x = 75  # Increased from 50 to move right
-            qr_y = 120  # Increased from 35 to move down
+            # Insert QR Code image (adjust position as needed)
+            qr_x = 75
+            qr_y = 120
             qr_img_fit = fitz.Pixmap(qr_buffer)
             page.insert_image(fitz.Rect(qr_x, qr_y, qr_x + 100, qr_y + 100), pixmap=qr_img_fit)
 
-            # Define text placement
+            # Define and center additional text (name and issue_date)
             name_id_text = f"{name} ({iatc_id})"
-            text_font = "Times-Bold"
             text_size = 30
             date_font_size = 20
 
-            # Center text horizontally
             text_width = fitz.get_text_length(name_id_text, fontsize=text_size, fontname=text_font)
             date_width = fitz.get_text_length(issue_date, fontsize=date_font_size, fontname=text_font)
 
             x_center_name = (page.rect.width - text_width) / 2
             x_center_date = (page.rect.width - date_width) / 2
 
-            # Insert text into PDF
             page.insert_text((x_center_name, 300), name_id_text, fontsize=text_size, fontname=text_font, color=(0, 0, 0))
-            page.insert_text((x_center_date, 380), issue_date, fontsize=date_font_size, fontname=text_font, color=(0, 0, 0))  # Moved up slightly
+            page.insert_text((x_center_date, 380), issue_date, fontsize=date_font_size, fontname=text_font, color=(0, 0, 0))
 
             pdf_buffer = io.BytesIO()
             doc.save(pdf_buffer)
@@ -138,7 +149,7 @@ with tabs[0]:  # Certificate Generator Page
             # Upload certificate to Supabase
             uploaded_cert_url = upload_certificate_to_supabase(pdf_buffer.getvalue(), file_name)
             if uploaded_cert_url:
-                insert_certificate(iatc_id, name, issue_date, cert_type, uploaded_cert_url)
+                insert_certificate(iatc_id, name, issue_date, cert_type, uploaded_cert_url, cert_number)
 
             # Save to zip file
             zipf.writestr(file_name, pdf_buffer.getvalue())
@@ -147,10 +158,9 @@ with tabs[0]:  # Certificate Generator Page
         zipf.close()
         zip_buffer.seek(0)
         st.download_button("Download Certificates (ZIP)", zip_buffer, file_name="certificates.zip", mime="application/zip")
-
         st.success("Certificates generated and uploaded successfully!")
 
-with tabs[1]:  # Certificate Log Page
+with tabs[1]:
     st.title("Certificate Log")
     headers = {
         "apikey": SUPABASE_SERVICE_ROLE_KEY,
